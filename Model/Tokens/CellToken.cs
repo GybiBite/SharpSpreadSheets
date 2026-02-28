@@ -8,10 +8,13 @@ namespace SharpSpreadSheets.Model.Tokens
 {
     public class CellToken : IToken
     {
-        // The professor specifically mentions a "BadCell" constant for errors
-        public const int BadCell = -1;
+        public int Row { get; private set; }
+        public int Column { get; private set; }
 
-        public int Column { get; set; } = BadCell; // A=0, B=1, etc. [cite: 72]
-        public int Row { get; set; } = BadCell;
+        // Stubs used by getCellToken and printCellToken logic
+        public void setRow(int row) => Row = row;
+        public void setColumn(int col) => Column = col;
+        public int getRow() => Row;
+        public int getColumn() => Column;
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Generic.Stack<T>;
+// using System.Collections.Generic.Stack<T>;
+using SharpSpreadSheets.Model.Tokens;
 
 /*
  * Utility functions.
@@ -23,7 +24,7 @@ public class Util
      * @param expTreeToken  an ExpressionTreeToken
      * @return a String associated with expTreeToken
      */
-    public string printExpressionTreeToken(Token expTreeToken)
+    public string printExpressionTreeToken(IToken expTreeToken)
     {
         string returnString = "";
 
@@ -306,16 +307,16 @@ public class Util
      * when read from the bottom of the stack to the top of the stack,
      * is a postfix expression.
      */
-    public Stack<Token> getFormula(string formula)
+    public Stack<IToken> getFormula(string formula)
     {
-        Stack<Token> returnStack = new Stack<Token>();  // stack of Tokens (representing a postfix expression)
+        Stack<IToken> returnStack = new Stack<IToken>();  // stack of Tokens (representing a postfix expression)
         bool error = false;
         char ch = ' ';
 
         int literalValue = 0;
 
         int index = 0;  // index into formula
-        Stack<Token> operatorStack = new Stack<Token>();  // stack of operators
+        Stack<IToken> operatorStack = new Stack<IToken>();  // stack of operators
 
         while (index < formula.Length)
         {

@@ -8,7 +8,10 @@ namespace SharpSpreadSheets.Model.Tokens
 {
     public class LiteralToken : IToken
     {
-        public int Value { get; set; }
-        public LiteralToken(int value) => Value = value;
+        private int _value;
+        public LiteralToken(int val) => _value = val;
+
+        // Stub for getValue()
+        public int getValue() => _value;
     }
 }

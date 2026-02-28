@@ -8,17 +8,22 @@ namespace SharpSpreadSheets.Model.Tokens
 {
     public class OperatorToken : IToken
     {
-        // Priorities defined in the provided utility code
-        public char Operator { get; }
+        private char _op;
+        public OperatorToken(char op) => _op = op;
 
-        public OperatorToken(char op) => Operator = op;
+        // Stub for getOperatorToken()
+        public char getOperatorToken() => _op;
 
-        public int Priority => Operator switch
+        // Stub for priority() 
+        public int priority()
         {
-            '+' or '-' => 0,
-            '*' or '/' => 1,
-            '(' => 2,
-            _ => -1
-        };
+            return _op switch
+            {
+                '+' or '-' => 0,
+                '*' or '/' => 1,
+                '(' => 2,
+                _ => -1
+            };
+        }
     }
 }
