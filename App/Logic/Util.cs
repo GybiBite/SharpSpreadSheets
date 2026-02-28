@@ -11,7 +11,7 @@ namespace SharpSpreadSheets.Logic
      * You should place these methods in the appropriate classes.
      * @author Donald Chinn
      */
-    public class Util
+    public static class Util
     {
         // Assuming these constants are defined elsewhere in your project, 
         // but added here to provide context for the translation.
@@ -27,7 +27,7 @@ namespace SharpSpreadSheets.Logic
          * @param expTreeToken  an ExpressionTreeToken
          * @return a String associated with expTreeToken
          */
-        public string printExpressionTreeToken(IToken expTreeToken)
+        public static string PrintExpressionTreeToken(IToken expTreeToken)
         {
             string returnString = "";
 
@@ -37,7 +37,7 @@ namespace SharpSpreadSheets.Logic
             }
             else if (expTreeToken is CellToken)
             {
-                returnString = printCellToken((CellToken)expTreeToken) + " ";
+                returnString = PrintCellToken((CellToken)expTreeToken) + " ";
             }
             else if (expTreeToken is LiteralToken)
             {
@@ -58,7 +58,7 @@ namespace SharpSpreadSheets.Logic
          * @param ch  a char
          * @return  whether ch is an operator
          */
-        public bool isOperator(char ch)
+        public static bool IsOperator(char ch)
         {
             return ch == Plus ||
                     ch == Minus ||
@@ -78,9 +78,9 @@ namespace SharpSpreadSheets.Logic
          * @param ch  a char
          * @return  the priority of the operator
          */
-        public int operatorPriority(char ch)
+        public static int OperatorPriority(char ch)
         {
-            if (!isOperator(ch))
+            if (!IsOperator(ch))
             {
                 // This case should NEVER happen
                 Console.WriteLine("Error in operatorPriority.");
@@ -119,7 +119,7 @@ namespace SharpSpreadSheets.Logic
          *
          * @return  the priority of operatorToken
          */
-        public int priority(char operatorToken)
+        public static int Priority(char operatorToken)
         {
             switch (operatorToken)
             {
@@ -150,7 +150,7 @@ namespace SharpSpreadSheets.Logic
          * @param cellToken  a cellToken (essentially a return value)
          * @return  index corresponding to the position in the string just after the cell reference
          */
-        public int getCellToken(string inputString, int startIndex, CellToken cellToken)
+        public static int GetCellToken(string inputString, int startIndex, CellToken cellToken)
         {
             char ch;
             int column = 0;
@@ -263,7 +263,7 @@ namespace SharpSpreadSheets.Logic
          * @param cellToken  a CellToken
          * @return  the cellToken's coordinates
          */
-        public string printCellToken(CellToken cellToken)
+        public static string PrintCellToken(CellToken cellToken)
         {
             char ch;
             string returnString = "";
@@ -310,7 +310,7 @@ namespace SharpSpreadSheets.Logic
          * when read from the bottom of the stack to the top of the stack,
          * is a postfix expression.
          */
-        public Stack<IToken> getFormula(string formula)
+        public static Stack<IToken> GetFormula(string formula)
         {
             Stack<IToken> returnStack = new Stack<IToken>();  // stack of Tokens (representing a postfix expression)
             bool error = false;
@@ -341,7 +341,7 @@ namespace SharpSpreadSheets.Logic
                 }
 
                 // ASSERT: ch now contains the first character of the next token.
-                if (isOperator(ch))
+                if (IsOperator(ch))
                 {
                     // We found an operator token
                     switch (ch)
@@ -358,7 +358,7 @@ namespace SharpSpreadSheets.Logic
                             while (operatorStack.Count > 0)
                             {
                                 stackOperator = (OperatorToken)operatorStack.Peek();
-                                if (stackOperator.priority() >= operatorPriority(ch) &&
+                                if (stackOperator.priority() >= OperatorPriority(ch) &&
                                     stackOperator.getOperatorToken() != LeftParen)
                                 {
                                     // output the operator to the return stack    
@@ -425,7 +425,7 @@ namespace SharpSpreadSheets.Logic
                 {
                     // We found a cell reference token
                     CellToken cellToken = new CellToken();
-                    index = getCellToken(formula, index, cellToken);
+                    index = GetCellToken(formula, index, cellToken);
                     if (cellToken.getRow() == BadCell)
                     {
                         error = true;
