@@ -1,4 +1,5 @@
 using SharpSpreadSheets.Logic;
+using SharpSpreadSheets.Model.Tokens;
 
 namespace SharpSpreadSheets
 {
@@ -11,9 +12,32 @@ namespace SharpSpreadSheets
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+            InitializeGrid(40,40);
         }
 
+        public void InitializeGrid(int rows, int cols)
+        {
+            spreadsheetView.Rows.Clear();
+            spreadsheetView.Columns.Clear();
+
+            for (int i = 0; i < cols; i++)
+            {
+                string fullCoord = Util.PrintCellToken(new CellToken { Column = i, Row = 0 });
+
+                string colName = new string(fullCoord.TakeWhile(char.IsLetter).ToArray());
+
+                spreadsheetView.Columns.Add(colName, colName);
+                spreadsheetView.Columns[i].Width = 60;
+            }
+
+            spreadsheetView.Rows.Add(rows);
+            for (int j = 0; j < rows; j++)
+            {
+                spreadsheetView.Rows[j].HeaderCell.Value = j.ToString();
+            }
+
+            spreadsheetView.RowHeadersWidth = 50;
+        }
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -25,6 +49,16 @@ namespace SharpSpreadSheets
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
         {
 
         }

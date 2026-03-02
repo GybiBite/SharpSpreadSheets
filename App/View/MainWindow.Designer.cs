@@ -33,11 +33,18 @@
             newToolStripMenuItem = new ToolStripMenuItem();
             openToolStripMenuItem = new ToolStripMenuItem();
             saveToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            guideToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem1 = new ToolStripMenuItem();
             spreadsheetView = new DataGridView();
             Column1 = new DataGridViewTextBoxColumn();
             Column2 = new DataGridViewTextBoxColumn();
+            textBox1 = new TextBox();
+            panel1 = new Panel();
+            textBox2 = new TextBox();
+            label1 = new Label();
+            label2 = new Label();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)spreadsheetView).BeginInit();
             SuspendLayout();
@@ -53,7 +60,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, saveToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, saveToolStripMenuItem, exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -76,13 +83,25 @@
             saveToolStripMenuItem.Size = new Size(103, 22);
             saveToolStripMenuItem.Text = "Save";
             // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(103, 22);
+            exitToolStripMenuItem.Text = "Exit";
+            // 
             // aboutToolStripMenuItem
             // 
-            aboutToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem1 });
+            aboutToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { guideToolStripMenuItem, aboutToolStripMenuItem1 });
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             aboutToolStripMenuItem.Size = new Size(44, 20);
             aboutToolStripMenuItem.Text = "Help";
             aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
+            // 
+            // guideToolStripMenuItem
+            // 
+            guideToolStripMenuItem.Name = "guideToolStripMenuItem";
+            guideToolStripMenuItem.Size = new Size(107, 22);
+            guideToolStripMenuItem.Text = "Guide";
             // 
             // aboutToolStripMenuItem1
             // 
@@ -98,7 +117,9 @@
             spreadsheetView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             spreadsheetView.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2 });
             spreadsheetView.Location = new Point(12, 82);
+            spreadsheetView.MultiSelect = false;
             spreadsheetView.Name = "spreadsheetView";
+            spreadsheetView.SelectionMode = DataGridViewSelectionMode.CellSelect;
             spreadsheetView.Size = new Size(776, 356);
             spreadsheetView.TabIndex = 1;
             spreadsheetView.VirtualMode = true;
@@ -114,14 +135,60 @@
             Column2.HeaderText = "Column2";
             Column2.Name = "Column2";
             // 
-            // Form1
+            // textBox1
+            // 
+            textBox1.Location = new Point(12, 53);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(100, 23);
+            textBox1.TabIndex = 2;
+            // 
+            // panel1
+            // 
+            panel1.BackColor = SystemColors.ActiveCaptionText;
+            panel1.Location = new Point(118, 53);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1, 23);
+            panel1.TabIndex = 3;
+            panel1.Paint += panel1_Paint;
+            // 
+            // textBox2
+            // 
+            textBox2.Location = new Point(125, 53);
+            textBox2.Name = "textBox2";
+            textBox2.Size = new Size(654, 23);
+            textBox2.TabIndex = 4;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 35);
+            label1.Name = "label1";
+            label1.Size = new Size(39, 15);
+            label1.TabIndex = 5;
+            label1.Text = "Go to:";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(125, 35);
+            label2.Name = "label2";
+            label2.Size = new Size(61, 15);
+            label2.TabIndex = 6;
+            label2.Text = "Cell input:";
+            // 
+            // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(textBox2);
+            Controls.Add(panel1);
+            Controls.Add(textBox1);
             Controls.Add(spreadsheetView);
             Controls.Add(menuStrip1);
-            Name = "Form1";
+            Name = "MainWindow";
             Text = "Form1";
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
@@ -143,5 +210,12 @@
         private DataGridView spreadsheetView;
         private DataGridViewTextBoxColumn Column1;
         private DataGridViewTextBoxColumn Column2;
+        private TextBox textBox1;
+        private Panel panel1;
+        private TextBox textBox2;
+        private Label label1;
+        private Label label2;
+        private ToolStripMenuItem guideToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
     }
 }
