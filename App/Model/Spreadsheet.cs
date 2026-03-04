@@ -10,6 +10,8 @@ namespace SharpSpreadSheets.Model
     {
         private Dictionary<(int, int), Cell> _cells = new Dictionary<(int, int), Cell>();
 
+        public Spreadsheet() { }
+
         public Cell GetCell(int row, int col)
         {
             if (!_cells.TryGetValue((row, col), out Cell cell))

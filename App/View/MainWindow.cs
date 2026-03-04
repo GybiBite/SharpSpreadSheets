@@ -12,7 +12,7 @@ namespace SharpSpreadSheets
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeGrid(10,10);
+            InitializeGrid(255,255);
         }
 
         public void InitializeGrid(int rows, int cols)
