@@ -119,6 +119,7 @@
             spreadsheetView.Location = new Point(12, 82);
             spreadsheetView.MultiSelect = false;
             spreadsheetView.Name = "spreadsheetView";
+            spreadsheetView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
             spreadsheetView.SelectionMode = DataGridViewSelectionMode.CellSelect;
             spreadsheetView.Size = new Size(776, 356);
             spreadsheetView.TabIndex = 1;

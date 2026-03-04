@@ -12,7 +12,7 @@ namespace SharpSpreadSheets
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeGrid(40,40);
+            InitializeGrid(10,10);
         }
 
         public void InitializeGrid(int rows, int cols)
@@ -24,7 +24,7 @@ namespace SharpSpreadSheets
             {
                 string fullCoord = Util.PrintCellToken(new CellToken { Column = i, Row = 0 });
 
-                string colName = new string(fullCoord.TakeWhile(char.IsLetter).ToArray());
+                string colName = new([.. fullCoord.TakeWhile(char.IsLetter)]);
 
                 spreadsheetView.Columns.Add(colName, colName);
                 spreadsheetView.Columns[i].Width = 60;
@@ -36,7 +36,7 @@ namespace SharpSpreadSheets
                 spreadsheetView.Rows[j].HeaderCell.Value = j.ToString();
             }
 
-            spreadsheetView.RowHeadersWidth = 50;
+            //spreadsheetView.RowHeadersWidth = 10;
         }
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
