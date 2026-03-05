@@ -132,5 +132,17 @@ namespace Testing
             int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
             Assert.Equal(25, result);
         }
+
+        [Fact]
+        public void ExpressionTree_Evaluate_Exponentiation_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("2^3");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(8, result); // 2^3 = 8
+        }
     }
 }

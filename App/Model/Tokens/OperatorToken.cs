@@ -22,6 +22,7 @@ namespace SharpSpreadSheets.Model.Tokens
                 '+' or '-' => 0,
                 '*' or '/' => 1,
                 '(' => 2,
+                '^' => 3,
                 _ => -1
             };
         }
