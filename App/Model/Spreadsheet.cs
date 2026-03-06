@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -36,20 +37,106 @@ namespace SharpSpreadSheets.Model
         // Returns the total number of columns in the spreadsheet
         public int GetNumCols() { return _cells.GetLength(1); }
 
-        // Changes the formula of a cell, rebuilds its expression tree, and recalculates its value
-        public void ChangeCellForumla(int row, int col, string newFormula) {
-            Cell cell = GetCell(row, col);      // get the cell we want to update
-            cell.ChangeFormula(newFormula);     // store the new formula string on the cell
+        // Changes the formula of a cell and evaluates effected cells. Reverts changes if a cycle is detected.
+        public void ChangeCellFormula(int row, int col, string newFormula) {
+            Cell thisCell = GetCell(row, col); 
+            string oldFormula = thisCell.Formula; // Save previous formula in case of cell evaluation failure
+            
+            thisCell.ChangeFormula(newFormula);
+            
+            Stack<IToken> newFormulaTokens = Util.GetFormula(newFormula); // convert formula string to a stack of tokens  
+            
+            UpdateDependencies(thisCell, newFormulaTokens); // stack is preserved
+            UpdateExpressionTree(thisCell, newFormulaTokens);
+            
+            // if cell evaluation fails, revert to previous formula
+            if (!EvaluateCells(thisCell))
+            {
+                ChangeCellFormula(row, col, oldFormula);
+            }
+        }
 
-            // convert the formula string from infix to a postfix stack of tokens  
-            Stack<IToken> tokenStack = Util.GetFormula(newFormula);
+        // Updates dependencies for this cell and other effected cells
+        private void UpdateDependencies(Cell thisCell, Stack<IToken> formulaTokens)
+        {
+            // Remove old dependencies
+            foreach (var otherCell in thisCell.DependentOn)
+            {
+                otherCell.Dependents.Remove(thisCell);
+            }
+            
+            thisCell.DependentOn.Clear();
 
-            // create a new expression tree and build it from the postfix token stack
-            cell.ExpressionTree = new ExpressionTree();
-            cell.ExpressionTree.BuildExpressionTree(tokenStack);
+            // Add new dependencies 
+            foreach (var token in formulaTokens)
+            {
+                if (token is CellToken otherCellToken)
+                {
+                    Cell otherCell = GetCell(otherCellToken.Row, otherCellToken.Column);
+                    
+                    thisCell.DependentOn.Add(otherCell);
+                    otherCell.Dependents.Add(thisCell);
+                }
+            }
+        }
+        
+        // create a new expression tree using the new formula
+        private void UpdateExpressionTree(Cell thisCell, Stack<IToken> formulaTokens)
+        {
+            thisCell.ExpressionTree = new ExpressionTree();
+            thisCell.ExpressionTree.BuildExpressionTree(formulaTokens);
+        }
+        
+        // Calculate required order and evaluate cells, returns 0 if a cycle is found
+        private bool EvaluateCells(Cell thisCell)
+        {
+            Stack<Cell> sortedCells = new Stack<Cell>();
+            bool cyclicError = false;
+            
+            VisitCell(thisCell);
 
-            // recalculate the cell's numeric value by using the new expression tree
-            cell.Evaluate(this);    // "this" passes the spreadsheet so cell references can be looked up 
+            if (cyclicError)
+            {
+                foreach (var cell in sortedCells)
+                {
+                    cell.SortStatus = 0;
+                }
+            } 
+            else
+            {
+                foreach (var cell in sortedCells)
+                {
+                    cell.SortStatus = 0;
+                    cell.Evaluate(this);
+                }
+            }
+            
+            return !cyclicError;
+            
+            void VisitCell(Cell currentCell)
+            {
+                switch (currentCell.SortStatus)
+                {
+                    case 2:
+                        return;
+                    case 1:
+                        cyclicError = true; 
+                        return;
+                }
+
+                currentCell.SortStatus = 1;
+
+                foreach (var dependantCell in currentCell.Dependents)
+                {
+                    VisitCell(dependantCell);
+                }
+
+                currentCell.SortStatus = 2;
+                
+                sortedCells.Push(currentCell);
+            }
         }
     }
+    
+    
 }

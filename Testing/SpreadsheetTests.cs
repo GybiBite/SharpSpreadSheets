@@ -56,7 +56,7 @@ namespace Testing
         public void Spreadsheet_ChangeCellFormula_UpdatesFormulal()
         {
             Spreadsheet spreadsheet = new Spreadsheet(5, 5);
-            spreadsheet.ChangeCellForumla(0, 0, "5+3");
+            spreadsheet.ChangeCellFormula(0, 0, "5+3");
             Assert.Equal("5+3", spreadsheet.GetCell(0, 0).Formula);
         }
 
@@ -65,7 +65,7 @@ namespace Testing
         public void Spreadsheet_ChangeCellFormula_RecalculatesValue()
         {
             Spreadsheet spreadsheet = new Spreadsheet(5, 5);
-            spreadsheet.ChangeCellForumla(0, 0, "5+3");
+            spreadsheet.ChangeCellFormula(0, 0, "5+3");
             Assert.Equal(8, spreadsheet.GetCell(0, 0).Value);
         }
 
@@ -74,9 +74,53 @@ namespace Testing
         public void Spreadsheet_CellReference_EvaluatesCorrectly()
         {
             Spreadsheet spreadsheet = new Spreadsheet(5, 5);
-            spreadsheet.ChangeCellForumla(1, 0, "5");    // A0 = 5
-            spreadsheet.ChangeCellForumla(2, 0, "A1+2"); // A2 = A1 + 2 = 7
+            spreadsheet.ChangeCellFormula(1, 0, "5");    // A1 = 5
+            spreadsheet.ChangeCellFormula(2, 0, "A1+2"); // A2 = A1 + 2 = 7
             Assert.Equal(7, spreadsheet.GetCell(2, 0).Value);
+        }
+        
+        // Test that dependencies are updated when formula changes
+        [Fact]
+        public void Spreadsheet_ChangeCellFormula_UpdateDependencies()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "5"); // A1 = 5
+            spreadsheet.ChangeCellFormula(2, 1, "A1"); // B2 = A1
+
+            // B2 is dependantOn A1
+            Assert.Contains(spreadsheet.GetCell(1, 0), spreadsheet.GetCell(2, 1).DependentOn);
+            // B2 is a dependent of A1
+            Assert.Contains(spreadsheet.GetCell(2, 1), spreadsheet.GetCell(1, 0).Dependents);
+
+            spreadsheet.ChangeCellFormula(2, 1, "10"); // B2 = 10 
+
+            Assert.Empty(spreadsheet.GetCell(2, 1).DependentOn);
+            Assert.Empty(spreadsheet.GetCell(1, 0).Dependents);
+        }
+        
+        // Test that a complex formula evaluates correctly
+        [Fact]
+        public void Spreadsheet_ChangeCellFormula_ComplexFormula()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 3, "24");      // D1 = 24
+            spreadsheet.ChangeCellFormula(2, 1, "D1 + 6");  // B2 = D1(24) + 6  = 30
+            spreadsheet.ChangeCellFormula(3, 2, "B2 + B2"); // C3 = B2(30) + B2(30) = 60 
+            spreadsheet.ChangeCellFormula(1, 0, "C3 + D1"); // A1 = C3(60) + D1(24) = 84
+
+            Assert.Equal(84, spreadsheet.GetCell(1, 0).Value);
+        }
+        
+        // Test that formula is reset when a cycle is detected
+        [Fact]
+        public void Spreadsheet_ChangeCellFormula_DetectCycle()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "5"); // A1 = 5
+            spreadsheet.ChangeCellFormula(2, 1, "A1"); // B2 = A1
+            spreadsheet.ChangeCellFormula(1, 0, "B2"); // A1 = B2
+
+            Assert.Equal("5", spreadsheet.GetCell(1, 0).Formula);
         }
     }
 }

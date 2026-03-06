@@ -87,7 +87,7 @@ namespace Testing
         public void Cell_Dependencies_StartsEmpty()
         {
             Cell cell = new Cell();
-            Assert.Empty(cell.Dependencies);
+            Assert.Empty(cell.Dependents);
         }
     }
 }
