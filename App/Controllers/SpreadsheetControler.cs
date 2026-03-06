@@ -48,7 +48,7 @@ namespace SharpSpreadSheets.Controllers
             ApplicationConfiguration.Initialize();
 
             var mainWin = new MainWindow();
-            var sheet = new Spreadsheet();
+            var sheet = new Spreadsheet(255,255);
 
             // Initialize the controller to bridge them
             var controller = new SpreadsheetController(mainWin, sheet);

@@ -1,107 +1,95 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using SharpSpreadSheets.Logic;
+﻿using SharpSpreadSheets.Logic;
 using SharpSpreadSheets.Model.Tokens;
 
 namespace SharpSpreadSheets.Model
 {
     public class Spreadsheet
     {
-        // 2D array of cells representing the spreadsheet grid
-        private Cell[,] _cells;
+        // Use a tuple (row, col) as the key for O(1) lookups in a sparse grid
+        private readonly Dictionary<(int, int), Cell> _cells = new();
+        private readonly int _maxRows;
+        private readonly int _maxCols;
 
-        // Constructor: initializes the spreadsheet with the specified number of rows and columns
-        // and fills every spot with a default Cell object
-        public Spreadsheet(int rows, int cols) 
+        public Spreadsheet(int rows, int cols)
         {
-            _cells = new Cell[rows, cols];
-            for (int i = 0; i < rows; i++)          // loop through each row
-                for (int j = 0; j < cols; j++)      // loop through each column
-                    _cells[i, j] = new Cell();      // create a new Cell at this position
+            _maxRows = rows;
+            _maxCols = cols;
+            // No need to loop and fill! The dictionary starts empty to save memory.
         }
 
-        // Returns the cell at the specified row and column indices
-        public Cell GetCell(int row, int col) { 
-            return _cells[row, col];
+        // Returns the cell at the specified indices; creates it if it doesn't exist
+        public Cell GetCell(int row, int col)
+        {
+            if (row < 0 || row >= _maxRows || col < 0 || col >= _maxCols)
+                throw new IndexOutOfRangeException("Cell coordinates are out of bounds.");
+
+            if (!_cells.ContainsKey((row, col)))
+            {
+                _cells[(row, col)] = new Cell();
+            }
+            return _cells[(row, col)];
         }
 
-        // Returns the total number of rows in the spreadsheet
-        public int GetNumRows() { return _cells.GetLength(0); }
+        public int GetNumRows() => _maxRows;
+        public int GetNumCols() => _maxCols;
 
-        // Returns the total number of columns in the spreadsheet
-        public int GetNumCols() { return _cells.GetLength(1); }
+        public void ChangeCellFormula(int row, int col, string newFormula)
+        {
+            Cell thisCell = GetCell(row, col);
+            string oldFormula = thisCell.Formula;
 
-        // Changes the formula of a cell and evaluates effected cells. Reverts changes if a cycle is detected.
-        public void ChangeCellFormula(int row, int col, string newFormula) {
-            Cell thisCell = GetCell(row, col); 
-            string oldFormula = thisCell.Formula; // Save previous formula in case of cell evaluation failure
-            
             thisCell.ChangeFormula(newFormula);
-            
-            Stack<IToken> newFormulaTokens = Util.GetFormula(newFormula); // convert formula string to a stack of tokens  
-            
-            UpdateDependencies(thisCell, newFormulaTokens); // stack is preserved
+
+            // Note: Ensure your Util.GetFormula doesn't destroy the stack if you iterate it
+            Stack<IToken> newFormulaTokens = Util.GetFormula(newFormula);
+
+            UpdateDependencies(thisCell, newFormulaTokens);
             UpdateExpressionTree(thisCell, newFormulaTokens);
-            
-            // if cell evaluation fails, revert to previous formula
+
             if (!EvaluateCells(thisCell))
             {
+                // Recursive call to revert; ensure ChangeFormula triggers a re-calc
                 ChangeCellFormula(row, col, oldFormula);
             }
         }
 
-        // Updates dependencies for this cell and other effected cells
         private void UpdateDependencies(Cell thisCell, Stack<IToken> formulaTokens)
         {
-            // Remove old dependencies
             foreach (var otherCell in thisCell.DependentOn)
             {
                 otherCell.Dependents.Remove(thisCell);
             }
-            
             thisCell.DependentOn.Clear();
 
-            // Add new dependencies 
             foreach (var token in formulaTokens)
             {
                 if (token is CellToken otherCellToken)
                 {
                     Cell otherCell = GetCell(otherCellToken.Row, otherCellToken.Column);
-                    
                     thisCell.DependentOn.Add(otherCell);
                     otherCell.Dependents.Add(thisCell);
                 }
             }
         }
-        
-        // create a new expression tree using the new formula
+
         private void UpdateExpressionTree(Cell thisCell, Stack<IToken> formulaTokens)
         {
             thisCell.ExpressionTree = new ExpressionTree();
-            thisCell.ExpressionTree.BuildExpressionTree(formulaTokens);
+            // Passing a copy of the stack is safer if BuildExpressionTree consumes it
+            thisCell.ExpressionTree.BuildExpressionTree(new Stack<IToken>(formulaTokens.Reverse()));
         }
-        
-        // Calculate required order and evaluate cells, returns 0 if a cycle is found
+
         private bool EvaluateCells(Cell thisCell)
         {
             Stack<Cell> sortedCells = new Stack<Cell>();
             bool cyclicError = false;
-            
+
             VisitCell(thisCell);
 
             if (cyclicError)
             {
-                foreach (var cell in sortedCells)
-                {
-                    cell.SortStatus = 0;
-                }
-            } 
+                foreach (var cell in sortedCells) cell.SortStatus = 0;
+            }
             else
             {
                 foreach (var cell in sortedCells)
@@ -110,33 +98,27 @@ namespace SharpSpreadSheets.Model
                     cell.Evaluate(this);
                 }
             }
-            
+
             return !cyclicError;
-            
+
             void VisitCell(Cell currentCell)
             {
-                switch (currentCell.SortStatus)
+                if (currentCell.SortStatus == 2) return;
+                if (currentCell.SortStatus == 1)
                 {
-                    case 2:
-                        return;
-                    case 1:
-                        cyclicError = true; 
-                        return;
+                    cyclicError = true;
+                    return;
                 }
 
                 currentCell.SortStatus = 1;
-
                 foreach (var dependantCell in currentCell.Dependents)
                 {
                     VisitCell(dependantCell);
                 }
 
                 currentCell.SortStatus = 2;
-                
                 sortedCells.Push(currentCell);
             }
         }
     }
-    
-    
 }
