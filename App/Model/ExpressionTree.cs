@@ -65,6 +65,7 @@ namespace SharpSpreadSheets.Model
                     '-' => leftVal - rightVal,
                     '*' => leftVal * rightVal,
                     '/' => rightVal != 0 ? leftVal / rightVal : 0, // Div by zero guard
+                    '^' => (int)Math.Pow(leftVal, rightVal),
                     _ => 0
                 };
             }

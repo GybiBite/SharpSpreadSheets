@@ -19,6 +19,7 @@ namespace SharpSpreadSheets.Logic
         public const char Minus = '-';
         public const char Mult = '*';
         public const char Div = '/';
+        public const char Exp = '^';
         public const char LeftParen = '(';
         public const int BadCell = -1;
 
@@ -64,7 +65,8 @@ namespace SharpSpreadSheets.Logic
                     ch == Minus ||
                     ch == Mult ||
                     ch == Div ||
-                    ch == LeftParen;
+                    ch == LeftParen ||
+                    ch == Exp;
         }
 
         /**
@@ -98,6 +100,8 @@ namespace SharpSpreadSheets.Logic
                     return 1;
                 case LeftParen:
                     return 2;
+                case Exp:
+                    return 3;
 
                 default:
                     // This case should NEVER happen
@@ -351,6 +355,7 @@ namespace SharpSpreadSheets.Logic
                         case Mult:
                         case Div:
                         case LeftParen:
+                        case Exp:
                             // push operatorTokens onto the output stack until
                             // we reach an operator on the operator stack that has
                             // lower priority than the current one.
