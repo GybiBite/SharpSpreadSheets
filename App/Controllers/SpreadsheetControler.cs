@@ -1,26 +1,59 @@
 ﻿using SharpSpreadSheets.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SharpSpreadSheets.Logic;
 
 namespace SharpSpreadSheets.Controllers
 {
-    public class SpreadsheetControler
+    public class SpreadsheetController
     {
-        private readonly static MainWindow View = new();
-        private readonly static Spreadsheet Spreadsheet = new();
+        private readonly MainWindow _view;
+        private readonly Spreadsheet _model;
+
+        public SpreadsheetController(MainWindow view, Spreadsheet model)
+        {
+            _view = view;
+            _model = model;
+
+            // Wire up View events to Controller actions
+            _view.CellBeginEdit += OnCellBeginEdit;
+            _view.CellEndEdit += OnCellEndEdit;
+            _view.SelectionChanged += OnSelectionChanged;
+        }
+
+        private void OnCellBeginEdit(int row, int col)
+        {
+            // When the user clicks a cell, show the FORMULA in the input box
+            var cell = _model.GetCell(row, col);
+            _view.SetInputText(cell.Formula);
+        }
+
+        private void OnCellEndEdit(int row, int col, string newFormula)
+        {
+            // Update the model
+            _model.GetCell(row, col).ChangeFormula(newFormula);
+
+            // In a true Observer pattern, the Model would fire an event 
+            // that the Controller hears to update the View's display value.
+            var cell = _model.GetCell(row, col);
+            _view.UpdateCellDisplay(row, col, cell.Value);
+        }
+
+        private void OnSelectionChanged(int row, int col)
+        {
+            _view.UpdateAddressBar(row, col);
+        }
 
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(View);
+
+            var mainWin = new MainWindow();
+            var sheet = new Spreadsheet();
+
+            // Initialize the controller to bridge them
+            var controller = new SpreadsheetController(mainWin, sheet);
+
+            Application.Run(mainWin);
         }
-
-
     }
 }

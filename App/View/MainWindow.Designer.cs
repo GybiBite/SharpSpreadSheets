@@ -40,9 +40,9 @@
             spreadsheetView = new DataGridView();
             Column1 = new DataGridViewTextBoxColumn();
             Column2 = new DataGridViewTextBoxColumn();
-            textBox1 = new TextBox();
+            JumpCellBox = new TextBox();
             panel1 = new Panel();
-            textBox2 = new TextBox();
+            FormulaInputBox = new TextBox();
             label1 = new Label();
             label2 = new Label();
             menuStrip1.SuspendLayout();
@@ -136,12 +136,12 @@
             Column2.HeaderText = "Column2";
             Column2.Name = "Column2";
             // 
-            // textBox1
+            // JumpCellBox
             // 
-            textBox1.Location = new Point(12, 53);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(100, 23);
-            textBox1.TabIndex = 2;
+            JumpCellBox.Location = new Point(12, 53);
+            JumpCellBox.Name = "JumpCellBox";
+            JumpCellBox.Size = new Size(100, 23);
+            JumpCellBox.TabIndex = 2;
             // 
             // panel1
             // 
@@ -152,12 +152,12 @@
             panel1.TabIndex = 3;
             panel1.Paint += panel1_Paint;
             // 
-            // textBox2
+            // FormulaInputBox
             // 
-            textBox2.Location = new Point(125, 53);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(654, 23);
-            textBox2.TabIndex = 4;
+            FormulaInputBox.Location = new Point(125, 53);
+            FormulaInputBox.Name = "FormulaInputBox";
+            FormulaInputBox.Size = new Size(654, 23);
+            FormulaInputBox.TabIndex = 4;
             // 
             // label1
             // 
@@ -184,9 +184,9 @@
             ClientSize = new Size(800, 450);
             Controls.Add(label2);
             Controls.Add(label1);
-            Controls.Add(textBox2);
+            Controls.Add(FormulaInputBox);
             Controls.Add(panel1);
-            Controls.Add(textBox1);
+            Controls.Add(JumpCellBox);
             Controls.Add(spreadsheetView);
             Controls.Add(menuStrip1);
             Name = "MainWindow";
@@ -211,9 +211,9 @@
         private DataGridView spreadsheetView;
         private DataGridViewTextBoxColumn Column1;
         private DataGridViewTextBoxColumn Column2;
-        private TextBox textBox1;
+        private TextBox JumpCellBox;
         private Panel panel1;
-        private TextBox textBox2;
+        private TextBox FormulaInputBox;
         private Label label1;
         private Label label2;
         private ToolStripMenuItem guideToolStripMenuItem;

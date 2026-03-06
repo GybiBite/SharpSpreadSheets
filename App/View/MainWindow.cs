@@ -10,6 +10,26 @@ namespace SharpSpreadSheets
             InitializeComponent();
         }
 
+        public event Action<int, int>? CellBeginEdit;
+        public event Action<int, int, string>? CellEndEdit;
+        public event Action<int, int>? SelectionChanged;
+
+        private void SetupEventForwarding()
+        {
+            spreadsheetView.CellBeginEdit += (s, e) =>
+                CellBeginEdit?.Invoke(e.RowIndex, e.ColumnIndex);
+
+            spreadsheetView.CellEndEdit += (s, e) => {
+                var newValue = spreadsheetView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+                CellEndEdit?.Invoke(e.RowIndex, e.ColumnIndex, newValue);
+            };
+
+            spreadsheetView.SelectionChanged += (s, e) => {
+                if (spreadsheetView.CurrentCell != null)
+                    SelectionChanged?.Invoke(spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
+            };
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             InitializeGrid(255,255);
@@ -36,8 +56,34 @@ namespace SharpSpreadSheets
                 spreadsheetView.Rows[j].HeaderCell.Value = j.ToString();
             }
 
+            SetupEventForwarding();
+
             //spreadsheetView.RowHeadersWidth = 10;
         }
+
+        public void SetInputText(string Forumla)
+        {
+            FormulaInputBox.Text = Forumla;
+        }
+
+        public void UpdateCellDisplay(int row, int col, int value)
+        {
+            spreadsheetView.Rows[row].Cells[col].Value = value;
+
+            spreadsheetView.InvalidateCell(col, row);
+        }
+
+        public void UpdateAddressBar(int row, int col)
+        {
+            CellToken dispToken = new()
+            {
+                Column = col,
+                Row = row
+            };
+
+            JumpCellBox.Text = Util.PrintCellToken(dispToken);
+        }
+
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
