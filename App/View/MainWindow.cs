@@ -13,6 +13,8 @@ namespace SharpSpreadSheets
         public event Action<int, int>? CellBeginEdit;
         public event Action<int, int, string>? CellEndEdit;
         public event Action<int, int>? SelectionChanged;
+        public event Action<string>? AddressSubmitted;
+        public event Action<int, int, string>? FormulaInputSubmitted;
 
         private void SetupEventForwarding()
         {
@@ -82,6 +84,50 @@ namespace SharpSpreadSheets
             };
 
             JumpCellBox.Text = Util.PrintCellToken(dispToken);
+        }
+
+        public void SelectCell(int row, int col)
+        {
+            if (row >= 0 && row < spreadsheetView.RowCount && col >= 0 && col < spreadsheetView.ColumnCount)
+            {
+                spreadsheetView.CurrentCell = spreadsheetView.Rows[row].Cells[col];
+
+                spreadsheetView.FirstDisplayedScrollingRowIndex = Math.Max(0, row - 2);
+            }
+
+            UpdateAddressBar(row, col);
+        }
+
+        private void JumpCellBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                AddressSubmitted?.Invoke(JumpCellBox.Text);
+                e.SuppressKeyPress = true; // Prevents the 'ding' sound
+            }
+        }
+
+        public (int row, int col) GetCurrentSelection()
+        {
+            // Safety check in case nothing is selected
+            if (spreadsheetView.CurrentCell != null)
+            {
+                return (spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
+            }
+
+            return (0, 0);
+        }
+
+        private void FormulaInputBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                var (row, col) = GetCurrentSelection();
+                FormulaInputSubmitted?.Invoke(row, col, FormulaInputBox.Text);
+
+                e.SuppressKeyPress = true;
+                spreadsheetView.Focus(); // Return focus to the grid
+            }
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)

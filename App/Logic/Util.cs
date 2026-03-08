@@ -210,6 +210,15 @@ namespace SharpSpreadSheets.Logic
                 if (char.IsUpper(ch))
                 {
                     column = (column + 1) * 26 + (ch - 'A');
+
+                    // Fix for super large cell references
+                    if (column > 20000)
+                    {
+                        cellToken.setColumn(BadCell);
+                        cellToken.setRow(BadCell);
+                        return index;
+                    }
+
                     index++;
                 }
                 else
@@ -269,6 +278,9 @@ namespace SharpSpreadSheets.Logic
          */
         public static string PrintCellToken(CellToken cellToken)
         {
+            if (cellToken.getColumn() == BadCell || cellToken.getRow() == BadCell)
+                return "ERR";
+
             char ch;
             string returnString = "";
             int col;

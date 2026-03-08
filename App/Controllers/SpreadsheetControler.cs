@@ -1,5 +1,6 @@
-﻿using SharpSpreadSheets.Model;
-using SharpSpreadSheets.Logic;
+﻿using SharpSpreadSheets.Logic;
+using SharpSpreadSheets.Model;
+using SharpSpreadSheets.Model.Tokens;
 
 namespace SharpSpreadSheets.Controllers
 {
@@ -17,6 +18,34 @@ namespace SharpSpreadSheets.Controllers
             _view.CellBeginEdit += OnCellBeginEdit;
             _view.CellEndEdit += OnCellEndEdit;
             _view.SelectionChanged += OnSelectionChanged;
+            _view.AddressSubmitted += OnAddressSubmitted;
+            _view.FormulaInputSubmitted += OnCellEndEdit;
+        }
+
+        private void OnAddressSubmitted(string address)
+        {
+            CellToken token = new CellToken();
+            // Utilize your existing logic in Util.cs
+            Util.GetCellToken(address.ToUpper(), 0, token);
+
+            if (token.getRow() != Util.BadCell && token.getColumn() != Util.BadCell)
+            {
+                // Validate against model boundaries
+                if (token.getRow() < _model.GetNumRows() && token.getColumn() < _model.GetNumCols())
+                {
+                    _view.SelectCell(token.getRow(), token.getColumn());
+                }
+                else
+                {
+                    MessageBox.Show("Cell out of range.");
+                }
+            }
+            else
+            {
+                // Revert to current selection if invalid input
+                var current = _view.GetCurrentSelection(); // You'll need to expose this from View
+                _view.UpdateAddressBar(current.row, current.col);
+            }
         }
 
         private void OnCellBeginEdit(int row, int col)
@@ -26,20 +55,39 @@ namespace SharpSpreadSheets.Controllers
             _view.SetInputText(cell.Formula);
         }
 
-        private void OnCellEndEdit(int row, int col, string newFormula)
-        {
-            // Update the model
-            _model.GetCell(row, col).ChangeFormula(newFormula);
-
-            // In a true Observer pattern, the Model would fire an event 
-            // that the Controller hears to update the View's display value.
-            var cell = _model.GetCell(row, col);
-            _view.UpdateCellDisplay(row, col, cell.Value);
-        }
-
         private void OnSelectionChanged(int row, int col)
         {
+            // Update the Address box
             _view.UpdateAddressBar(row, col);
+
+            // ADD THIS: Fetch the cell and update the formula bar immediately when selected
+            var cell = _model.GetCell(row, col);
+            _view.SetInputText(cell.Formula);
+        }
+
+        private void OnCellEndEdit(int row, int col, string newFormula)
+        {
+            // 1. Prevent parser crashes on empty cells
+            if (string.IsNullOrWhiteSpace(newFormula))
+            {
+                newFormula = "0";
+            }
+
+            // 2. Strip the '=' sign because Util.GetFormula does not support it
+            if (newFormula.StartsWith("="))
+            {
+                newFormula = newFormula.Substring(1);
+            }
+
+            // 3. Update the model
+            _model.ChangeCellFormula(row, col, newFormula);
+
+            // 4. Get the evaluated result and update the grid
+            var cell = _model.GetCell(row, col);
+            _view.UpdateCellDisplay(row, col, cell.Value);
+
+            // 5. Keep the formula bar perfectly in sync with the backend
+            _view.SetInputText(cell.Formula);
         }
 
         [STAThread]
