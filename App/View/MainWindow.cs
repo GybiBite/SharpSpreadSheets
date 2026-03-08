@@ -16,17 +16,32 @@ namespace SharpSpreadSheets
         public event Action<string>? AddressSubmitted;
         public event Action<int, int, string>? FormulaInputSubmitted;
 
+        public Func<int, int, string>? RequestCellValue;
+
         private void SetupEventForwarding()
         {
-            spreadsheetView.CellBeginEdit += (s, e) =>
-                CellBeginEdit?.Invoke(e.RowIndex, e.ColumnIndex);
+            // 1. Ask the Controller for the value when the grid needs to draw a cell
+            spreadsheetView.CellValueNeeded += (s, e) =>
+            {
+                if (RequestCellValue != null)
+                {
+                    e.Value = RequestCellValue(e.RowIndex, e.ColumnIndex);
+                }
+            };
 
-            spreadsheetView.CellEndEdit += (s, e) => {
-                var newValue = spreadsheetView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString() ?? "";
+            // 2. Tell the Controller when the user types directly into a cell
+            spreadsheetView.CellValuePushed += (s, e) =>
+            {
+                string newValue = e.Value?.ToString() ?? "";
                 CellEndEdit?.Invoke(e.RowIndex, e.ColumnIndex, newValue);
             };
 
-            spreadsheetView.SelectionChanged += (s, e) => {
+            // Keep your existing selection and begin-edit events
+            spreadsheetView.CellBeginEdit += (s, e) =>
+                CellBeginEdit?.Invoke(e.RowIndex, e.ColumnIndex);
+
+            spreadsheetView.SelectionChanged += (s, e) =>
+            {
                 if (spreadsheetView.CurrentCell != null)
                     SelectionChanged?.Invoke(spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
             };
@@ -34,7 +49,7 @@ namespace SharpSpreadSheets
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeGrid(255,255);
+            InitializeGrid(255, 255);
         }
 
         public void InitializeGrid(int rows, int cols)
@@ -68,10 +83,16 @@ namespace SharpSpreadSheets
             FormulaInputBox.Text = Forumla;
         }
 
+        public void RefreshGrid()
+        {
+            // This tells the WinForms rendering engine "the data changed, redraw the grid."
+            // Because of Virtual Mode, it will instantly fire CellValueNeeded 
+            // ONLY for the cells currently visible on screen. Super efficient!
+            spreadsheetView.Invalidate();
+        }
+
         public void UpdateCellDisplay(int row, int col, int value)
         {
-            spreadsheetView.Rows[row].Cells[col].Value = value;
-
             spreadsheetView.InvalidateCell(col, row);
         }
 
@@ -151,6 +172,11 @@ namespace SharpSpreadSheets
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
         {
 
         }

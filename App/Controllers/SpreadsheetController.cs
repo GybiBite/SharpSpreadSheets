@@ -14,6 +14,14 @@ namespace SharpSpreadSheets.Controllers
             _view = view;
             _model = model;
 
+            _view.RequestCellValue = (row, col) =>
+            {
+                var cell = _model.GetCell(row, col);
+                // Display empty string for 0 if the formula is also just "0" (untouched cell)
+                if (cell.Value == 0 && cell.Formula == "0") return "";
+                return cell.Value.ToString();
+            };
+
             // Wire up View events to Controller actions
             _view.CellBeginEdit += OnCellBeginEdit;
             _view.CellEndEdit += OnCellEndEdit;
@@ -73,20 +81,22 @@ namespace SharpSpreadSheets.Controllers
                 newFormula = "0";
             }
 
-            // 2. Strip the '=' sign because Util.GetFormula does not support it
+            // 2. Strip the '=' sign 
             if (newFormula.StartsWith("="))
             {
                 newFormula = newFormula.Substring(1);
             }
 
-            // 3. Update the model
+            // 3. Update the model. Your EvaluateCells() logic handles 
+            // updating the internal Values of all dependent cells here!
             _model.ChangeCellFormula(row, col, newFormula);
 
-            // 4. Get the evaluated result and update the grid
-            var cell = _model.GetCell(row, col);
-            _view.UpdateCellDisplay(row, col, cell.Value);
+            // 4. Force the view to refresh. It will automatically ask the 
+            // Controller for the new values of all visible cells.
+            _view.RefreshGrid();
 
-            // 5. Keep the formula bar perfectly in sync with the backend
+            // 5. Keep the formula bar perfectly in sync
+            var cell = _model.GetCell(row, col);
             _view.SetInputText(cell.Formula);
         }
 

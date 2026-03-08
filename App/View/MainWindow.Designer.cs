@@ -106,8 +106,9 @@
             // aboutToolStripMenuItem1
             // 
             aboutToolStripMenuItem1.Name = "aboutToolStripMenuItem1";
-            aboutToolStripMenuItem1.Size = new Size(107, 22);
+            aboutToolStripMenuItem1.Size = new Size(180, 22);
             aboutToolStripMenuItem1.Text = "About";
+            aboutToolStripMenuItem1.Click += aboutToolStripMenuItem1_Click;
             // 
             // spreadsheetView
             // 
@@ -193,7 +194,7 @@
             Controls.Add(spreadsheetView);
             Controls.Add(menuStrip1);
             Name = "MainWindow";
-            Text = "Form1";
+            Text = "SharpSpreadSheets";
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
