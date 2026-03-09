@@ -106,8 +106,9 @@
             // aboutToolStripMenuItem1
             // 
             aboutToolStripMenuItem1.Name = "aboutToolStripMenuItem1";
-            aboutToolStripMenuItem1.Size = new Size(107, 22);
+            aboutToolStripMenuItem1.Size = new Size(180, 22);
             aboutToolStripMenuItem1.Text = "About";
+            aboutToolStripMenuItem1.Click += aboutToolStripMenuItem1_Click;
             // 
             // spreadsheetView
             // 
@@ -116,6 +117,7 @@
             spreadsheetView.AllowUserToOrderColumns = true;
             spreadsheetView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             spreadsheetView.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2 });
+            spreadsheetView.EditMode = DataGridViewEditMode.EditOnEnter;
             spreadsheetView.Location = new Point(12, 82);
             spreadsheetView.MultiSelect = false;
             spreadsheetView.Name = "spreadsheetView";
@@ -142,6 +144,7 @@
             JumpCellBox.Name = "JumpCellBox";
             JumpCellBox.Size = new Size(100, 23);
             JumpCellBox.TabIndex = 2;
+            JumpCellBox.KeyDown += JumpCellBox_KeyDown;
             // 
             // panel1
             // 
@@ -158,6 +161,7 @@
             FormulaInputBox.Name = "FormulaInputBox";
             FormulaInputBox.Size = new Size(654, 23);
             FormulaInputBox.TabIndex = 4;
+            FormulaInputBox.KeyDown += FormulaInputBox_KeyDown;
             // 
             // label1
             // 
@@ -190,7 +194,7 @@
             Controls.Add(spreadsheetView);
             Controls.Add(menuStrip1);
             Name = "MainWindow";
-            Text = "Form1";
+            Text = "SharpSpreadSheets";
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
