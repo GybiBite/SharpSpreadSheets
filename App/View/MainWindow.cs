@@ -15,6 +15,11 @@ namespace SharpSpreadSheets
         public event Action<int, int>? SelectionChanged;
         public event Action<string>? AddressSubmitted;
         public event Action<int, int, string>? FormulaInputSubmitted;
+        public event Action? ShowAboutRequested;
+
+        public event Action? DiscardSheetRequested;
+        public event Action<string>? OpenFileRequested;
+        public event Action<string>? SaveFileRequested;
 
         public Func<int, int, string>? RequestCellValue;
 
@@ -153,32 +158,53 @@ namespace SharpSpreadSheets
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                // Restrict the user to opening specific file types
+                openFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
 
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Pass the selected file path to the Controller
+                    OpenFileRequested?.Invoke(openFileDialog.FileName);
+                }
+            }
         }
 
         private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
         {
+            ShowAboutRequested?.Invoke();
+        }
 
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult confirmResult = MessageBox.Show(
+                "Are you sure you want to clear this spreadsheet?",
+                "New Spreadsheet",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirmResult == DialogResult.Yes)
+            {
+                DiscardSheetRequested?.Invoke();
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                // Ensure it saves with your custom extension by default
+                saveFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
+                saveFileDialog.DefaultExt = "sss";
+                saveFileDialog.AddExtension = true;
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Pass the chosen file path to the Controller
+                    SaveFileRequested?.Invoke(saveFileDialog.FileName);
+                }
+            }
         }
     }
 }

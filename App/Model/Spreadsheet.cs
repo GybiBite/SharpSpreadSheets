@@ -1,5 +1,6 @@
 ﻿using SharpSpreadSheets.Logic;
 using SharpSpreadSheets.Model.Tokens;
+using System.Xml.Serialization;
 
 namespace SharpSpreadSheets.Model
 {
@@ -118,6 +119,56 @@ namespace SharpSpreadSheets.Model
 
                 currentCell.SortStatus = 2;
                 sortedCells.Push(currentCell);
+            }
+        }
+
+        public void EraseSpreadsheet()
+        {
+            _cells.Clear();
+        }
+
+        public void SaveToFile(string filePath)
+        {
+            // 1. Convert our complex dictionary into a simple list of DTOs
+            var dataToSave = _cells
+                .Where(kvp => kvp.Value.Formula != "0" && !string.IsNullOrWhiteSpace(kvp.Value.Formula))
+                .Select(kvp => new CellDto
+                {
+                    Row = kvp.Key.Item1,
+                    Column = kvp.Key.Item2,
+                    Formula = kvp.Value.Formula
+                }).ToList();
+
+            // 2. Serialize the list to an XML file
+            var serializer = new XmlSerializer(typeof(List<CellDto>));
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                serializer.Serialize(stream, dataToSave);
+            }
+        }
+
+        public void LoadFromFile(string filePath)
+        {
+            var serializer = new XmlSerializer(typeof(List<CellDto>));
+            List<CellDto>? loadedData;
+
+            // 1. Read the XML file
+            using (var stream = new FileStream(filePath, FileMode.Open))
+            {
+                loadedData = serializer.Deserialize(stream) as List<CellDto>;
+            }
+
+            // 2. Clear the current spreadsheet entirely
+            _cells.Clear();
+
+            // 3. Rebuild the spreadsheet by acting like the user just typed these formulas in
+            if (loadedData != null)
+            {
+                foreach (var cellData in loadedData)
+                {
+                    // This safely rebuilds all ExpressionTrees and dependency lists!
+                    ChangeCellFormula(cellData.Row, cellData.Column, cellData.Formula);
+                }
             }
         }
     }

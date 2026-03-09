@@ -1,6 +1,7 @@
 ﻿using SharpSpreadSheets.Logic;
 using SharpSpreadSheets.Model;
 using SharpSpreadSheets.Model.Tokens;
+using SharpSpreadSheets.View;
 
 namespace SharpSpreadSheets.Controllers
 {
@@ -28,11 +29,15 @@ namespace SharpSpreadSheets.Controllers
             _view.SelectionChanged += OnSelectionChanged;
             _view.AddressSubmitted += OnAddressSubmitted;
             _view.FormulaInputSubmitted += OnCellEndEdit;
+            _view.ShowAboutRequested += OnShowAboutRequested;
+            _view.SaveFileRequested += SaveFile;
+            _view.OpenFileRequested += OpenFile;
+            _view.DiscardSheetRequested += DiscardSpreadsheet;
         }
 
         private void OnAddressSubmitted(string address)
         {
-            CellToken token = new CellToken();
+            CellToken token = new();
             // Utilize your existing logic in Util.cs
             Util.GetCellToken(address.ToUpper(), 0, token);
 
@@ -51,8 +56,8 @@ namespace SharpSpreadSheets.Controllers
             else
             {
                 // Revert to current selection if invalid input
-                var current = _view.GetCurrentSelection(); // You'll need to expose this from View
-                _view.UpdateAddressBar(current.row, current.col);
+                var (row, col) = _view.GetCurrentSelection(); // You'll need to expose this from View
+                _view.UpdateAddressBar(row, col);
             }
         }
 
@@ -82,7 +87,7 @@ namespace SharpSpreadSheets.Controllers
             }
 
             // 2. Strip the '=' sign 
-            if (newFormula.StartsWith("="))
+            if (newFormula.StartsWith('='))
             {
                 newFormula = newFormula.Substring(1);
             }
@@ -98,6 +103,30 @@ namespace SharpSpreadSheets.Controllers
             // 5. Keep the formula bar perfectly in sync
             var cell = _model.GetCell(row, col);
             _view.SetInputText(cell.Formula);
+        }
+
+        private void OnShowAboutRequested()
+        {
+            // 'using' ensures the form is properly disposed of from memory when closed
+            using var aboutBox = new AboutBox();
+            aboutBox.ShowDialog();
+        }
+
+        private void SaveFile(string filePath)
+        {
+            _model.SaveToFile(filePath);
+        }
+
+        private void OpenFile(string filePath)
+        {
+            _model.LoadFromFile(filePath);
+            _view.RefreshGrid();
+        }
+
+        private void DiscardSpreadsheet ()
+        {
+            _model.EraseSpreadsheet();
+            _view.RefreshGrid();
         }
 
         [STAThread]
