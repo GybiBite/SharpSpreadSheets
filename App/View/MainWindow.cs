@@ -5,10 +5,7 @@ namespace SharpSpreadSheets
 {
     public partial class MainWindow : Form
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        // --- Public Events & Callbacks ---
 
         public event Action<int, int>? CellBeginEdit;
         public event Action<int, int, string>? CellEndEdit;
@@ -16,47 +13,24 @@ namespace SharpSpreadSheets
         public event Action<string>? AddressSubmitted;
         public event Action<int, int, string>? FormulaInputSubmitted;
         public event Action? ShowAboutRequested;
-
         public event Action? DiscardSheetRequested;
         public event Action<string>? OpenFileRequested;
         public event Action<string>? SaveFileRequested;
 
         public Func<int, int, string>? RequestCellValue;
 
-        private void SetupEventForwarding()
+        // --- Constructor ---
+
+        public MainWindow()
         {
-            // 1. Ask the Controller for the value when the grid needs to draw a cell
-            spreadsheetView.CellValueNeeded += (s, e) =>
-            {
-                if (RequestCellValue != null)
-                {
-                    e.Value = RequestCellValue(e.RowIndex, e.ColumnIndex);
-                }
-            };
-
-            // 2. Tell the Controller when the user types directly into a cell
-            spreadsheetView.CellValuePushed += (s, e) =>
-            {
-                string newValue = e.Value?.ToString() ?? "";
-                CellEndEdit?.Invoke(e.RowIndex, e.ColumnIndex, newValue);
-            };
-
-            // Keep your existing selection and begin-edit events
-            spreadsheetView.CellBeginEdit += (s, e) =>
-                CellBeginEdit?.Invoke(e.RowIndex, e.ColumnIndex);
-
-            spreadsheetView.SelectionChanged += (s, e) =>
-            {
-                if (spreadsheetView.CurrentCell != null)
-                    SelectionChanged?.Invoke(spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
-            };
+            InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            InitializeGrid(255, 255);
-        }
+        // --- Public Methods ---
 
+        /// <summary>
+        /// Sets up the visual grid with the specified number of rows and columns, including alphabetical column headers.
+        /// </summary>
         public void InitializeGrid(int rows, int cols)
         {
             spreadsheetView.Rows.Clear();
@@ -65,7 +39,6 @@ namespace SharpSpreadSheets
             for (int i = 0; i < cols; i++)
             {
                 string fullCoord = Util.PrintCellToken(new CellToken { Column = i, Row = 0 });
-
                 string colName = new([.. fullCoord.TakeWhile(char.IsLetter)]);
 
                 spreadsheetView.Columns.Add(colName, colName);
@@ -73,32 +46,26 @@ namespace SharpSpreadSheets
             }
 
             spreadsheetView.Rows.Add(rows);
+
             for (int j = 0; j < rows; j++)
             {
                 spreadsheetView.Rows[j].HeaderCell.Value = j.ToString();
             }
 
             SetupEventForwarding();
-
-            //spreadsheetView.RowHeadersWidth = 10;
         }
 
-        public void SetInputText(string Forumla)
+        public void SetInputText(string formula)
         {
-            FormulaInputBox.Text = Forumla;
+            FormulaInputBox.Text = formula;
         }
 
+        /// <summary>
+        /// Forces the WinForms rendering engine to redraw the grid, instantly firing CellValueNeeded for visible cells.
+        /// </summary>
         public void RefreshGrid()
         {
-            // This tells the WinForms rendering engine "the data changed, redraw the grid."
-            // Because of Virtual Mode, it will instantly fire CellValueNeeded 
-            // ONLY for the cells currently visible on screen. Super efficient!
             spreadsheetView.Invalidate();
-        }
-
-        public void UpdateCellDisplay(int row, int col, int value)
-        {
-            spreadsheetView.InvalidateCell(col, row);
         }
 
         public void UpdateAddressBar(int row, int col)
@@ -112,16 +79,63 @@ namespace SharpSpreadSheets
             JumpCellBox.Text = Util.PrintCellToken(dispToken);
         }
 
+        /// <summary>
+        /// Navigates the grid to a specific cell, scrolling it into the user's view if necessary.
+        /// </summary>
         public void SelectCell(int row, int col)
         {
             if (row >= 0 && row < spreadsheetView.RowCount && col >= 0 && col < spreadsheetView.ColumnCount)
             {
                 spreadsheetView.CurrentCell = spreadsheetView.Rows[row].Cells[col];
-
                 spreadsheetView.FirstDisplayedScrollingRowIndex = Math.Max(0, row - 2);
             }
 
             UpdateAddressBar(row, col);
+        }
+
+        public (int row, int col) GetCurrentSelection()
+        {
+            if (spreadsheetView.CurrentCell != null)
+            {
+                return (spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
+            }
+
+            return (0, 0);
+        }
+
+        // --- Private Methods (Event Handlers & Helpers) ---
+
+        private void SetupEventForwarding()
+        {
+            spreadsheetView.CellValueNeeded += (s, e) =>
+            {
+                if (RequestCellValue != null)
+                {
+                    e.Value = RequestCellValue(e.RowIndex, e.ColumnIndex);
+                }
+            };
+
+            spreadsheetView.CellValuePushed += (s, e) =>
+            {
+                string newValue = e.Value?.ToString() ?? "";
+                CellEndEdit?.Invoke(e.RowIndex, e.ColumnIndex, newValue);
+            };
+
+            spreadsheetView.CellBeginEdit += (s, e) =>
+                CellBeginEdit?.Invoke(e.RowIndex, e.ColumnIndex);
+
+            spreadsheetView.SelectionChanged += (s, e) =>
+            {
+                if (spreadsheetView.CurrentCell != null)
+                {
+                    SelectionChanged?.Invoke(spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
+                }
+            };
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeGrid(255, 255);
         }
 
         private void JumpCellBox_KeyDown(object sender, KeyEventArgs e)
@@ -129,19 +143,8 @@ namespace SharpSpreadSheets
             if (e.KeyCode == Keys.Enter)
             {
                 AddressSubmitted?.Invoke(JumpCellBox.Text);
-                e.SuppressKeyPress = true; // Prevents the 'ding' sound
+                e.SuppressKeyPress = true;
             }
-        }
-
-        public (int row, int col) GetCurrentSelection()
-        {
-            // Safety check in case nothing is selected
-            if (spreadsheetView.CurrentCell != null)
-            {
-                return (spreadsheetView.CurrentCell.RowIndex, spreadsheetView.CurrentCell.ColumnIndex);
-            }
-
-            return (0, 0);
         }
 
         private void FormulaInputBox_KeyDown(object sender, KeyEventArgs e)
@@ -152,31 +155,35 @@ namespace SharpSpreadSheets
                 FormulaInputSubmitted?.Invoke(row, col, FormulaInputBox.Text);
 
                 e.SuppressKeyPress = true;
-                spreadsheetView.Focus(); // Return focus to the grid
+                spreadsheetView.Focus();
             }
         }
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            using OpenFileDialog openFileDialog = new();
+            openFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                // Restrict the user to opening specific file types
-                openFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Pass the selected file path to the Controller
-                    OpenFileRequested?.Invoke(openFileDialog.FileName);
-                }
+                OpenFileRequested?.Invoke(openFileDialog.FileName);
             }
         }
 
-        private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowAboutRequested?.Invoke();
+            using SaveFileDialog saveFileDialog = new();
+            saveFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
+            saveFileDialog.DefaultExt = "sss";
+            saveFileDialog.AddExtension = true;
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                SaveFileRequested?.Invoke(saveFileDialog.FileName);
+            }
         }
 
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult confirmResult = MessageBox.Show(
                 "Are you sure you want to clear this spreadsheet?",
@@ -190,21 +197,9 @@ namespace SharpSpreadSheets
             }
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void AboutToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                // Ensure it saves with your custom extension by default
-                saveFileDialog.Filter = "SharpSpreadSheets file (*.sss)|*.sss";
-                saveFileDialog.DefaultExt = "sss";
-                saveFileDialog.AddExtension = true;
-
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Pass the chosen file path to the Controller
-                    SaveFileRequested?.Invoke(saveFileDialog.FileName);
-                }
-            }
+            ShowAboutRequested?.Invoke();
         }
     }
 }

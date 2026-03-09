@@ -29,15 +29,15 @@ namespace Testing
 
             // Check the operators (The top of the stack)
             Assert.IsType<OperatorToken>(tokens[0]);
-            Assert.Equal('+', ((OperatorToken)tokens[0]).getOperatorToken());
+            Assert.Equal('+', ((OperatorToken)tokens[0]).GetOperatorToken());
 
             Assert.IsType<OperatorToken>(tokens[1]);
-            Assert.Equal('*', ((OperatorToken)tokens[1]).getOperatorToken());
+            Assert.Equal('*', ((OperatorToken)tokens[1]).GetOperatorToken());
 
             // Check the literals
-            Assert.Equal(2, ((LiteralToken)tokens[2]).getValue());
-            Assert.Equal(10, ((LiteralToken)tokens[3]).getValue());
-            Assert.Equal(5, ((LiteralToken)tokens[4]).getValue());
+            Assert.Equal(2, ((LiteralToken)tokens[2]).GetValue());
+            Assert.Equal(10, ((LiteralToken)tokens[3]).GetValue());
+            Assert.Equal(5, ((LiteralToken)tokens[4]).GetValue());
         }
     }
 }

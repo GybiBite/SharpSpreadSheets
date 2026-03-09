@@ -10,8 +10,8 @@ namespace SharpSpreadSheets.Model
         public int Value { get; set; }
         public ExpressionTree? ExpressionTree { get; set; }
         
-        public List<Cell> Dependents { get; private set; } = new List<Cell>();
-        public List<Cell> DependentOn { get; private set; } = new List<Cell>();
+        public List<Cell> Dependents { get; private set; } = [];
+        public List<Cell> DependentOn { get; private set; } = [];
         
         public int SortStatus = 0; // 0 = unsorted, temp mark == 1, permanent mark == 2
 

@@ -32,17 +32,17 @@ namespace SharpSpreadSheets.Logic
         {
             string returnString = "";
 
-            if (expTreeToken is OperatorToken)
+            if (expTreeToken is OperatorToken token)
             {
-                returnString = ((OperatorToken)expTreeToken).getOperatorToken() + " ";
+                returnString = token.GetOperatorToken() + " ";
             }
-            else if (expTreeToken is CellToken)
+            else if (expTreeToken is CellToken token1)
             {
-                returnString = PrintCellToken((CellToken)expTreeToken) + " ";
+                returnString = PrintCellToken(token1) + " ";
             }
-            else if (expTreeToken is LiteralToken)
+            else if (expTreeToken is LiteralToken token2)
             {
-                returnString = ((LiteralToken)expTreeToken).getValue() + " ";
+                returnString = token2.GetValue() + " ";
             }
             else
             {
@@ -157,15 +157,15 @@ namespace SharpSpreadSheets.Logic
         public static int GetCellToken(string inputString, int startIndex, CellToken cellToken)
         {
             char ch;
-            int column = 0;
-            int row = 0;
+            int column;
+            int row;
             int index = startIndex;
 
             // handle a bad startIndex
             if (startIndex < 0 || startIndex >= inputString.Length)
             {
-                cellToken.setColumn(BadCell);
-                cellToken.setRow(BadCell);
+                cellToken.SetColumn(BadCell);
+                cellToken.SetRow(BadCell);
                 return index;
             }
 
@@ -183,8 +183,8 @@ namespace SharpSpreadSheets.Logic
             if (index == inputString.Length)
             {
                 // reached the end of the string before finding a capital letter
-                cellToken.setColumn(BadCell);
-                cellToken.setRow(BadCell);
+                cellToken.SetColumn(BadCell);
+                cellToken.SetRow(BadCell);
                 return index;
             }
 
@@ -194,8 +194,8 @@ namespace SharpSpreadSheets.Logic
             // process CAPITAL alphabetic characters to calculate the column
             if (!char.IsUpper(ch))
             {
-                cellToken.setColumn(BadCell);
-                cellToken.setRow(BadCell);
+                cellToken.SetColumn(BadCell);
+                cellToken.SetRow(BadCell);
                 return index;
             }
             else
@@ -214,8 +214,8 @@ namespace SharpSpreadSheets.Logic
                     // Fix for super large cell references
                     if (column > 20000)
                     {
-                        cellToken.setColumn(BadCell);
-                        cellToken.setRow(BadCell);
+                        cellToken.SetColumn(BadCell);
+                        cellToken.SetRow(BadCell);
                         return index;
                     }
 
@@ -229,8 +229,8 @@ namespace SharpSpreadSheets.Logic
             if (index == inputString.Length)
             {
                 // reached the end of the string before fully parsing the cell reference
-                cellToken.setColumn(BadCell);
-                cellToken.setRow(BadCell);
+                cellToken.SetColumn(BadCell);
+                cellToken.SetRow(BadCell);
                 return index;
             }
 
@@ -245,8 +245,8 @@ namespace SharpSpreadSheets.Logic
             }
             else
             {
-                cellToken.setColumn(BadCell);
-                cellToken.setRow(BadCell);
+                cellToken.SetColumn(BadCell);
+                cellToken.SetRow(BadCell);
                 return index;
             }
 
@@ -265,8 +265,8 @@ namespace SharpSpreadSheets.Logic
             }
 
             // successfully parsed a cell reference
-            cellToken.setColumn(column);
-            cellToken.setRow(row);
+            cellToken.SetColumn(column);
+            cellToken.SetRow(row);
             return index;
         }
 
@@ -278,7 +278,7 @@ namespace SharpSpreadSheets.Logic
          */
         public static string PrintCellToken(CellToken cellToken)
         {
-            if (cellToken.getColumn() == BadCell || cellToken.getRow() == BadCell)
+            if (cellToken.GetColumn() == BadCell || cellToken.GetRow() == BadCell)
                 return "ERR";
 
             char ch;
@@ -287,16 +287,16 @@ namespace SharpSpreadSheets.Logic
             int largest = 26;  // minimum col number with number_of_digits digits
             int number_of_digits = 2;
 
-            col = cellToken.getColumn();
+            col = cellToken.GetColumn();
 
             // compute the biggest power of 26 that is less than or equal to col
             // We don't check for overflow of largest here.
             while (largest <= col)
             {
-                largest = largest * 26;
+                largest *= 26;
                 number_of_digits++;
             }
-            largest = largest / 26;
+            largest /= 26;
             number_of_digits--;
 
             // append the column label, one character at a time
@@ -304,8 +304,8 @@ namespace SharpSpreadSheets.Logic
             {
                 ch = (char)(col / largest - 1 + 'A');
                 returnString += ch;
-                col = col % largest;
-                largest = largest / 26;
+                col %= largest;
+                largest /= 26;
                 number_of_digits--;
             }
 
@@ -314,7 +314,7 @@ namespace SharpSpreadSheets.Logic
             returnString += ch;
 
             // append the row as an integer
-            returnString += cellToken.getRow();
+            returnString += cellToken.GetRow();
 
             return returnString;
         }
@@ -328,14 +328,14 @@ namespace SharpSpreadSheets.Logic
          */
         public static Stack<IToken> GetFormula(string formula)
         {
-            Stack<IToken> returnStack = new Stack<IToken>();
+            Stack<IToken> returnStack = new();
             bool error = false;
             char ch = ' ';
 
-            int literalValue = 0;
+            int literalValue;
 
             int index = 0;
-            Stack<IToken> operatorStack = new Stack<IToken>();
+            Stack<IToken> operatorStack = new();
 
             while (index < formula.Length)
             {
@@ -405,8 +405,8 @@ namespace SharpSpreadSheets.Logic
                             while (operatorStack.Count > 0)
                             {
                                 stackOperator = (OperatorToken)operatorStack.Peek();
-                                if (stackOperator.priority() >= OperatorPriority(ch) &&
-                                    stackOperator.getOperatorToken() != LeftParen)
+                                if (stackOperator.Priority() >= OperatorPriority(ch) &&
+                                    stackOperator.GetOperatorToken() != LeftParen)
                                 {
                                     operatorStack.Pop();
                                     returnStack.Push(stackOperator);
@@ -430,7 +430,7 @@ namespace SharpSpreadSheets.Logic
                 {
                     OperatorToken stackOperator;
                     stackOperator = (OperatorToken)operatorStack.Pop();
-                    while (stackOperator.getOperatorToken() != LeftParen)
+                    while (stackOperator.GetOperatorToken() != LeftParen)
                     {
                         returnStack.Push(stackOperator);
                         stackOperator = (OperatorToken)operatorStack.Pop();
@@ -458,9 +458,9 @@ namespace SharpSpreadSheets.Logic
                 }
                 else if (char.IsUpper(ch))
                 {
-                    CellToken cellToken = new CellToken();
+                    CellToken cellToken = new();
                     index = GetCellToken(formula, index, cellToken);
-                    if (cellToken.getRow() == BadCell)
+                    if (cellToken.GetRow() == BadCell)
                     {
                         error = true;
                         break;

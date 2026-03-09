@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace SharpSpreadSheets.Model.Tokens
 {
-    public class LiteralToken : IToken
+    public class LiteralToken(int val) : IToken
     {
-        private int _value;
-        public LiteralToken(int val) => _value = val;
+        private readonly int _value = val;
 
         // Stub for getValue()
-        public int getValue() => _value;
+        public int GetValue() => _value;
     }
 }

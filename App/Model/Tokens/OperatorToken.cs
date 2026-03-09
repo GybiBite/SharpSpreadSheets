@@ -6,16 +6,15 @@ using System.Threading.Tasks;
 
 namespace SharpSpreadSheets.Model.Tokens
 {
-    public class OperatorToken : IToken
+    public class OperatorToken(char op) : IToken
     {
-        private char _op;
-        public OperatorToken(char op) => _op = op;
+        private readonly char _op = op;
 
         // Stub for getOperatorToken()
-        public char getOperatorToken() => _op;
+        public char GetOperatorToken() => _op;
 
         // Stub for priority() 
-        public int priority()
+        public int Priority()
         {
             return _op switch
             {

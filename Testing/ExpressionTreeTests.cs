@@ -30,7 +30,7 @@ namespace Testing
 
             Assert.NotNull(tree.Root);
             Assert.IsType<LiteralToken>(tree.Root.Token);
-            Assert.Equal(5, ((LiteralToken)tree.Root.Token).getValue());
+            Assert.Equal(5, ((LiteralToken)tree.Root.Token).GetValue());
         }
 
         // Test that building a tree from an addition formula has an operator at the root
@@ -43,7 +43,7 @@ namespace Testing
 
             Assert.NotNull(tree.Root);
             Assert.IsType<OperatorToken>(tree.Root.Token);
-            Assert.Equal('+', ((OperatorToken)tree.Root.Token).getOperatorToken());
+            Assert.Equal('+', ((OperatorToken)tree.Root.Token).GetOperatorToken());
         }
 
         // Test that Evaluate correctly computes addition

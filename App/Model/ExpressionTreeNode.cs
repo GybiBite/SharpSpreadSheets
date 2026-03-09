@@ -1,18 +1,13 @@
-﻿namespace SharpSpreadSheets.Model
+﻿using SharpSpreadSheets.Model.Tokens;
+
+namespace SharpSpreadSheets.Model
 {
-    using SharpSpreadSheets.Model.Tokens;
-
-    public class ExpressionTreeNode
+    public class ExpressionTreeNode(IToken token, ExpressionTreeNode? left = null, ExpressionTreeNode? right = null)
     {
-        public IToken Token { get; set; }
-        public ExpressionTreeNode Left { get; set; }
-        public ExpressionTreeNode Right { get; set; }
+        public IToken Token { get; set; } = token;
 
-        public ExpressionTreeNode(IToken token, ExpressionTreeNode left = null, ExpressionTreeNode right = null)
-        {
-            Token = token;
-            Left = left;
-            Right = right;
-        }
+        public ExpressionTreeNode? Left { get; set; } = left;
+
+        public ExpressionTreeNode? Right { get; set; } = right;
     }
 }

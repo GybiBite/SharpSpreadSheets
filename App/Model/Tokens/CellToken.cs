@@ -12,9 +12,9 @@ namespace SharpSpreadSheets.Model.Tokens
         public int Column { get; set; }
 
         // Stubs used by getCellToken and printCellToken logic
-        public void setRow(int row) => Row = row;
-        public void setColumn(int col) => Column = col;
-        public int getRow() => Row;
-        public int getColumn() => Column;
+        public void SetRow(int row) => Row = row;
+        public void SetColumn(int col) => Column = col;
+        public int GetRow() => Row;
+        public int GetColumn() => Column;
     }
 }

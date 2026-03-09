@@ -4,7 +4,7 @@ namespace SharpSpreadSheets.Model
 {
     public class ExpressionTree
     {
-        public ExpressionTreeNode Root { get; set; }
+        public ExpressionTreeNode? Root { get; set; }
 
         public ExpressionTree()
         {
@@ -13,41 +13,26 @@ namespace SharpSpreadSheets.Model
 
         public void BuildExpressionTree(Stack<IToken> stack)
         {
-            Root = GetExpressionTree(stack);
+            Root = ConstructTree(stack);
         }
 
-        private ExpressionTreeNode GetExpressionTree(Stack<IToken> stack)
+        public static int Evaluate(ExpressionTreeNode? node, Spreadsheet spreadsheet)
         {
-            if (stack.Count == 0) return null; // [cite: 150-151]
-
-            IToken token = stack.Pop();
-
-            if (token is LiteralToken || token is CellToken)
+            if (node == null)
             {
-                return new ExpressionTreeNode(token); // Leaf nodes [cite: 153-155]
+                return 0;
             }
-            else if (token is OperatorToken)
-            {
-                ExpressionTreeNode right = GetExpressionTree(stack);
-                ExpressionTreeNode left = GetExpressionTree(stack);
-                return new ExpressionTreeNode(token, left, right);
-            }
-            return null;
-        }
-
-        public static int Evaluate(ExpressionTreeNode node, Spreadsheet spreadsheet)
-        {
-            if (node == null) return 0;
 
             if (node.Left == null && node.Right == null)
             {
                 if (node.Token is LiteralToken literal)
                 {
-                    return literal.getValue(); //
+                    return literal.GetValue();
                 }
+
                 if (node.Token is CellToken cell)
                 {
-                    return spreadsheet.GetCell(cell.getRow(), cell.getColumn()).Value;
+                    return spreadsheet.GetCell(cell.GetRow(), cell.GetColumn()).Value;
                 }
             }
 
@@ -56,18 +41,44 @@ namespace SharpSpreadSheets.Model
 
             if (node.Token is OperatorToken opToken)
             {
-                char op = opToken.getOperatorToken(); //
+                char op = opToken.GetOperatorToken();
+
                 return op switch
                 {
                     '+' => leftVal + rightVal,
                     '-' => leftVal - rightVal,
                     '*' => leftVal * rightVal,
-                    '/' => rightVal != 0 ? leftVal / rightVal : 0, // Div by zero guard
+                    '/' => rightVal != 0 ? leftVal / rightVal : 0,
                     '^' => (int)Math.Pow(leftVal, rightVal),
                     _ => 0
                 };
             }
+
             return 0;
+        }
+
+        private static ExpressionTreeNode? ConstructTree(Stack<IToken> stack)
+        {
+            if (stack.Count == 0)
+            {
+                return null;
+            }
+
+            IToken token = stack.Pop();
+
+            if (token is LiteralToken || token is CellToken)
+            {
+                return new ExpressionTreeNode(token);
+            }
+            else if (token is OperatorToken)
+            {
+                ExpressionTreeNode? right = ConstructTree(stack);
+                ExpressionTreeNode? left = ConstructTree(stack);
+
+                return new ExpressionTreeNode(token, left, right);
+            }
+
+            return null;
         }
     }
 }
