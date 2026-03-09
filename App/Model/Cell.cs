@@ -6,7 +6,7 @@ namespace SharpSpreadSheets.Model
 {
     public class Cell
     {
-        public string Formula { get; set; } = "0";
+        public string Formula { get; set; }
         public int Value { get; set; }
         public ExpressionTree? ExpressionTree { get; set; }
         
@@ -28,11 +28,6 @@ namespace SharpSpreadSheets.Model
             {
                 Value = ExpressionTree.Evaluate(ExpressionTree.Root, spreadsheet);
             }
-        }
-
-        public void ChangeFormula(string newFormula)
-        {
-            this.Formula = newFormula;
         }
     }
 }

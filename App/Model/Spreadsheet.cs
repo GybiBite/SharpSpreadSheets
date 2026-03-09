@@ -33,34 +33,35 @@ namespace SharpSpreadSheets.Model
         public int GetNumRows() => _maxRows;
         public int GetNumCols() => _maxCols;
 
+        // Changes the formula of a cell and evaluates effected cells. Reverts changes if a cycle is detected.
         public void ChangeCellFormula(int row, int col, string newFormula)
         {
             Cell thisCell = GetCell(row, col);
-            string oldFormula = thisCell.Formula;
-
-            thisCell.ChangeFormula(newFormula);
-
-            // Note: Ensure your Util.GetFormula doesn't destroy the stack if you iterate it
+            string oldFormula = thisCell.Formula; // Save previous formula in case of evaluation failure
+            thisCell.Formula = newFormula;
+            
             Stack<IToken> newFormulaTokens = Util.GetFormula(newFormula);
 
             UpdateDependencies(thisCell, newFormulaTokens);
             UpdateExpressionTree(thisCell, newFormulaTokens);
 
-            if (!EvaluateCells(thisCell))
+            if (!EvaluateCells(thisCell)) // if cell evaluation fails, revert to previous formula
             {
-                // Recursive call to revert; ensure ChangeFormula triggers a re-calc
                 ChangeCellFormula(row, col, oldFormula);
             }
         }
 
+        // Updates dependencies for this cell and other effected cells
         private void UpdateDependencies(Cell thisCell, Stack<IToken> formulaTokens)
         {
+            // Remove old dependencies
             foreach (var otherCell in thisCell.DependentOn)
             {
                 otherCell.Dependents.Remove(thisCell);
             }
             thisCell.DependentOn.Clear();
 
+            // Add new dependencies
             foreach (var token in formulaTokens)
             {
                 if (token is CellToken otherCellToken)
@@ -72,15 +73,16 @@ namespace SharpSpreadSheets.Model
             }
         }
 
+        // create a new expression tree using the new formula
         private void UpdateExpressionTree(Cell thisCell, Stack<IToken> formulaTokens)
         {
             thisCell.ExpressionTree = new ExpressionTree();
-            // Passing a copy of the stack is safer if BuildExpressionTree consumes it
+            // Pass a copy to preserve the stack
             thisCell.ExpressionTree.BuildExpressionTree(new Stack<IToken>(formulaTokens.Reverse()));
         }
 
-        private bool EvaluateCells(Cell thisCell)
-        {
+        // Calculate required order and evaluate cells, returns 0 if a cycle is found
+        private bool EvaluateCells(Cell thisCell) {
             Stack<Cell> sortedCells = new Stack<Cell>();
             bool cyclicError = false;
 
