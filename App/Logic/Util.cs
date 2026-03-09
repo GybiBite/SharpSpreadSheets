@@ -316,18 +316,17 @@ namespace SharpSpreadSheets.Logic
          */
         public static Stack<IToken> GetFormula(string formula)
         {
-            Stack<IToken> returnStack = new Stack<IToken>();  // stack of Tokens (representing a postfix expression)
+            Stack<IToken> returnStack = new Stack<IToken>();
             bool error = false;
             char ch = ' ';
 
             int literalValue = 0;
 
-            int index = 0;  // index into formula
-            Stack<IToken> operatorStack = new Stack<IToken>();  // stack of operators
+            int index = 0;
+            Stack<IToken> operatorStack = new Stack<IToken>();
 
             while (index < formula.Length)
             {
-                // get rid of leading whitespace characters
                 while (index < formula.Length)
                 {
                     ch = formula[index];
@@ -345,9 +344,43 @@ namespace SharpSpreadSheets.Logic
                 }
 
                 // ASSERT: ch now contains the first character of the next token.
-                if (IsOperator(ch))
+
+                // Check for negative number BEFORE IsOperator because '-' would be caught there first
+                if (ch == Minus && (index == 0 || IsPreviousNonWhitespaceAnOperatorOrParen(formula, index)))
                 {
-                    // We found an operator token
+                    index++;
+                    if (index < formula.Length && char.IsAsciiDigit(formula[index]))
+                    {
+                        // negative literal like -5
+                        literalValue = -(formula[index] - '0');
+                        index++;
+                        while (index < formula.Length)
+                        {
+                            ch = formula[index];
+                            if (char.IsAsciiDigit(ch))
+                            {
+                                literalValue = (literalValue * 10) - (ch - '0');
+                                index++;
+                            }
+                            else break;
+                        }
+                        returnStack.Push(new LiteralToken(literalValue));
+                    }
+                    else if (index < formula.Length && char.IsUpper(formula[index]))
+                    {
+                        // negative cell reference like -A1, convert to 0 - A1
+                        returnStack.Push(new LiteralToken(0));        // push 0
+                        operatorStack.Push(new OperatorToken(Minus)); // push minus operator
+                                                                      // let the next iteration handle the cell reference normally
+                    }
+                    else
+                    {
+                        error = true;
+                        break;
+                    }
+                }
+                else if (IsOperator(ch))
+                {
                     switch (ch)
                     {
                         case Plus:
@@ -356,9 +389,6 @@ namespace SharpSpreadSheets.Logic
                         case Div:
                         case LeftParen:
                         case Exp:
-                            // push operatorTokens onto the output stack until
-                            // we reach an operator on the operator stack that has
-                            // lower priority than the current one.
                             OperatorToken stackOperator;
                             while (operatorStack.Count > 0)
                             {
@@ -366,7 +396,6 @@ namespace SharpSpreadSheets.Logic
                                 if (stackOperator.priority() >= OperatorPriority(ch) &&
                                     stackOperator.getOperatorToken() != LeftParen)
                                 {
-                                    // output the operator to the return stack    
                                     operatorStack.Pop();
                                     returnStack.Push(stackOperator);
                                 }
@@ -378,35 +407,26 @@ namespace SharpSpreadSheets.Logic
                             break;
 
                         default:
-                            // This case should NEVER happen
                             Console.WriteLine("Error in getFormula.");
                             Environment.Exit(0);
                             break;
                     }
-                    // push the operator on the operator stack
                     operatorStack.Push(new OperatorToken(ch));
-
                     index++;
-
                 }
                 else if (ch == ')')
-                {    // maybe define OperatorToken.RightParen ?
+                {
                     OperatorToken stackOperator;
                     stackOperator = (OperatorToken)operatorStack.Pop();
-                    // This code does not handle operatorStack underflow.
                     while (stackOperator.getOperatorToken() != LeftParen)
                     {
-                        // pop operators off the stack until a LeftParen appears and
-                        // place the operators on the output stack
                         returnStack.Push(stackOperator);
                         stackOperator = (OperatorToken)operatorStack.Pop();
                     }
-
                     index++;
                 }
                 else if (char.IsAsciiDigit(ch))
                 {
-                    // We found a literal token
                     literalValue = ch - '0';
                     index++;
                     while (index < formula.Length)
@@ -422,13 +442,10 @@ namespace SharpSpreadSheets.Logic
                             break;
                         }
                     }
-                    // place the literal on the output stack
                     returnStack.Push(new LiteralToken(literalValue));
-
                 }
                 else if (char.IsUpper(ch))
                 {
-                    // We found a cell reference token
                     CellToken cellToken = new CellToken();
                     index = GetCellToken(formula, index, cellToken);
                     if (cellToken.getRow() == BadCell)
@@ -438,10 +455,8 @@ namespace SharpSpreadSheets.Logic
                     }
                     else
                     {
-                        // place the cell reference on the output stack
                         returnStack.Push(cellToken);
                     }
-
                 }
                 else
                 {
@@ -450,7 +465,6 @@ namespace SharpSpreadSheets.Logic
                 }
             }
 
-            // pop all remaining operators off the operator stack
             while (operatorStack.Count > 0)
             {
                 returnStack.Push(operatorStack.Pop());
@@ -458,11 +472,23 @@ namespace SharpSpreadSheets.Logic
 
             if (error)
             {
-                // a parse error; return the empty stack
                 returnStack.Clear();
             }
 
             return returnStack;
+        }
+
+        // Looks backwards past whitespace to check if the previous real character
+        // was an operator or open parenthesis — used to detect negative number prefixes
+        private static bool IsPreviousNonWhitespaceAnOperatorOrParen(string formula, int index)
+        {
+            int i = index - 1;
+            while (i >= 0 && char.IsWhiteSpace(formula[i]))
+            {
+                i--;
+            }
+            if (i < 0) return true; // nothing before it, treat as negative
+            return IsOperator(formula[i]) || formula[i] == '(';
         }
     }
 }
