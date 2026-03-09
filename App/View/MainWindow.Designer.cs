@@ -67,21 +67,21 @@
             // newToolStripMenuItem
             // 
             newToolStripMenuItem.Name = "newToolStripMenuItem";
-            newToolStripMenuItem.Size = new Size(180, 22);
+            newToolStripMenuItem.Size = new Size(103, 22);
             newToolStripMenuItem.Text = "New";
             newToolStripMenuItem.Click += NewToolStripMenuItem_Click;
             // 
             // openToolStripMenuItem
             // 
             openToolStripMenuItem.Name = "openToolStripMenuItem";
-            openToolStripMenuItem.Size = new Size(180, 22);
+            openToolStripMenuItem.Size = new Size(103, 22);
             openToolStripMenuItem.Text = "Open";
             openToolStripMenuItem.Click += OpenToolStripMenuItem_Click;
             // 
             // saveToolStripMenuItem
             // 
             saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            saveToolStripMenuItem.Size = new Size(180, 22);
+            saveToolStripMenuItem.Size = new Size(103, 22);
             saveToolStripMenuItem.Text = "Save";
             saveToolStripMenuItem.Click += SaveToolStripMenuItem_Click;
             // 
@@ -95,7 +95,7 @@
             // aboutToolStripMenuItem1
             // 
             aboutToolStripMenuItem1.Name = "aboutToolStripMenuItem1";
-            aboutToolStripMenuItem1.Size = new Size(180, 22);
+            aboutToolStripMenuItem1.Size = new Size(107, 22);
             aboutToolStripMenuItem1.Text = "About";
             aboutToolStripMenuItem1.Click += AboutToolStripMenuItem1_Click;
             // 
@@ -132,6 +132,7 @@
             JumpCellBox.Name = "JumpCellBox";
             JumpCellBox.Size = new Size(100, 23);
             JumpCellBox.TabIndex = 2;
+            JumpCellBox.Text = "A0";
             JumpCellBox.KeyDown += JumpCellBox_KeyDown;
             // 
             // panel1
