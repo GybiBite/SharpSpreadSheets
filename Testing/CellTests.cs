@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SharpSpreadSheets.Model;
+﻿using SharpSpreadSheets.Model;
 using SharpSpreadSheets.Model.Tokens;
 using SharpSpreadSheets.Logic;
-using Xunit;
 
 namespace Testing
 {
@@ -22,31 +16,13 @@ namespace Testing
             Assert.Null(cell.ExpressionTree);
         }
 
-        // Test that ChangeFormula updates the formula string
-        [Fact]
-        public void Cell_ChangeFormula_UpdatesFormula()
-        {
-            Cell cell = new Cell();
-            cell.ChangeFormula("5+3");
-            Assert.Equal("5+3", cell.Formula);
-        }
-
-        // Test that ChangeFormula doesa not affect the value until Evaluate is called
-        [Fact]
-        public void Cell_ChangeFormula_DoesNotChangeValueUntilEvaluated()
-        {
-            Cell cell = new Cell();
-            cell.ChangeFormula("5+3");
-            Assert.Equal(0, cell.Value);
-        }
-
         // Test that Evaluate correctly computes a simple literal formula
         [Fact]
         public void Cell_Evaluate_SimpleLiteralFormula_SetsCorrectValue()
         {
             Spreadsheet spreadsheet = new Spreadsheet(5, 5);
             Cell cell = new Cell();
-            cell.ChangeFormula("7");
+            cell.Formula = "7";
 
             Stack<IToken> stack = Util.GetFormula("7");
             cell.ExpressionTree = new ExpressionTree();
@@ -62,7 +38,7 @@ namespace Testing
         {
             Spreadsheet spreadsheet = new Spreadsheet(5, 5);
             Cell cell = new Cell();
-            cell.ChangeFormula("3+4");
+            cell.Formula = "3+4";
 
             Stack<IToken> stack = Util.GetFormula("3+4");
             cell.ExpressionTree = new ExpressionTree();

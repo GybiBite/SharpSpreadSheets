@@ -144,5 +144,189 @@ namespace Testing
             int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
             Assert.Equal(8, result); // 2^3 = 8
         }
+
+        // Test that a negative literal is parsed and evaluated correctly
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeLiteral_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-5+3");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(-2, result); // -5 + 3 = -2
+        }
+
+        // Test subtraction where the right operand is a negative number
+        [Fact]
+        public void ExpressionTree_Evaluate_SubtractNegativeNumber_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("3 - -5");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(8, result); // 3 - (-5) = 8
+        }
+
+        // Test the original bug case: cell reference minus a negative number
+        [Fact]
+        public void Spreadsheet_CellMinusNegativeNumber_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "-1");  // A1 = -1
+            spreadsheet.ChangeCellFormula(2, 0, "A1 - -5"); // A2 = -1 - (-5) = 4
+            Assert.Equal(4, spreadsheet.GetCell(2, 0).Value);
+        }
+
+        // Test negative number multiplied by a positive number
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeTimesPositive_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-3 * 4");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(-12, result); // -3 * 4 = -12
+        }
+
+        // Test cell reference times a negative literal
+        [Fact]
+        public void ExpressionTree_Evaluate_CellTimesNegativeLiteral_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "3"); // A1 = 3
+            spreadsheet.ChangeCellFormula(2, 0, "A1 * -5"); // A2 = 3 * -5 = -15
+            Assert.Equal(-15, spreadsheet.GetCell(2, 0).Value);
+        }
+
+        // Test two negative literals multiplied
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeTimesNegative_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-3 * -5");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(15, result); // -3 * -5 = 15
+        }
+
+        // Test negative cell reference times a literal
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeCellTimesLiteral_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "3"); // A1 = 3
+            spreadsheet.ChangeCellFormula(2, 0, "-A1 * 5"); // A2 = -3 * 5 = -15
+            Assert.Equal(-15, spreadsheet.GetCell(2, 0).Value);
+        }
+
+        // Test dividing a positive number by a negative literal
+        [Fact]
+        public void ExpressionTree_Evaluate_DivideByNegative_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("10 / -2");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(-5, result); // 10 / -2 = -5
+        }
+
+        // Test dividing a negative number by a positive literal
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeDividedByPositive_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-10 / 2");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(-5, result); // -10 / 2 = -5
+        }
+
+        // Test dividing a negative number by a negative number
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeDividedByNegative_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-10 / -2");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(5, result); // -10 / -2 = 5
+        }
+
+        // Test squaring a negative number
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeSquared_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-3 ^ 2");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(9, result); // -3 ^ 2 = 9
+        }
+
+        // Test a positive number raised to a negative exponent
+        // Note: since we use int, 2^-1 = 0 (integer truncation of 0.5)
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeExponent_ReturnsZero()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("2 ^ -1");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(0, result); // 2^-1 = 0.5, truncated to 0 as int
+        }
+
+        // Test a negative number raised to a negative exponent
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeBaseNegativeExponent_ReturnsZero()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-2 ^ -3");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(0, result); // -2^-3 = -0.125, truncated to 0 as int
+        }
+
+        // Test a negative number raised to an odd power
+        [Fact]
+        public void ExpressionTree_Evaluate_NegativeBaseOddExponent_ReturnsNegativeResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            ExpressionTree tree = new ExpressionTree();
+            Stack<IToken> stack = Util.GetFormula("-2 ^ 3");
+            tree.BuildExpressionTree(stack);
+
+            int result = ExpressionTree.Evaluate(tree.Root, spreadsheet);
+            Assert.Equal(-8, result); // -2^3 = -8
+        }
+
+        // Test a cell reference squared where the cell holds a negative value
+        [Fact]
+        public void Spreadsheet_NegativeCellSquared_ReturnsCorrectResult()
+        {
+            Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+            spreadsheet.ChangeCellFormula(1, 0, "-3"); // A1 = -3
+            spreadsheet.ChangeCellFormula(2, 0, "A1 ^ 2"); // A2 = -3^2 = 9
+            Assert.Equal(9, spreadsheet.GetCell(2, 0).Value);
+        }
     }
 }
